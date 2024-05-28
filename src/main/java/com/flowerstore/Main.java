@@ -12,6 +12,17 @@ public class Main {
     public static void main(String[] args) {
         System.out.println("안녕하세요! 트루 꽃가게에 오신걸 환영합니다😊");
 
+        // 주문 상태 객체 생성
+        OrderStatus orderStatus = new OrderStatus();
+
+        // 상태 모니터링 스레드 시작
+        StatusMonitor statusMonitor = new StatusMonitor(orderStatus);
+        Thread monitorThread = new Thread(statusMonitor);
+        monitorThread.start();
+
+        // "주문 접수중" 상태 설정
+        orderStatus.setStatus("주문 접수중");
+
         // 꽃 선택
         printCurrentTime(); // 현재 시간 출력
         InputTask flowerChoiceTask = new InputTask(scanner, "원하는 꽃을 골라주세요 (1: 🌹장미🌹, 2: 🌷튤립🌷, 3: 🌻해바라기🌻, 4: 🪻하이신스🪻): ", 1, 4);
@@ -102,11 +113,24 @@ public class Main {
         printCurrentTime(); // 현재 시간 출력
         System.out.println("트루 꽃가게를 이용해 주셔서 감사합니다! 🌸향기로운 하루 되세요🌸");
         System.out.println("주문 정보: " + order);
+
+        // 상태 업데이트 스레드 시작
+        StatusUpdater statusUpdater = new StatusUpdater(orderStatus);
+        Thread updaterThread = new Thread(statusUpdater);
+        updaterThread.start();
+
+        // 상태 모니터링 스레드가 종료되기를 기다림
+        try {
+            updaterThread.join();
+            monitorThread.join();
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
     }
 
     private static void printCurrentTime() {
         SimpleDateFormat sdf = new SimpleDateFormat("HH:mm:ss");
-        System.out.println("⌛현재 주문 시간⌛: " + sdf.format(new Date()));
+        System.out.println("현재 시간: " + sdf.format(new Date()));
     }
 
     private static String getFlowerType(int flowerChoice) {
